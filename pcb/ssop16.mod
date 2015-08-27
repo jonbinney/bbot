@@ -1,0 +1,144 @@
+PCBNEW-LibModule-V1  08/27/2015 03:18:27
+#encoding utf-8
+Units deci-mils
+$INDEX
+ssop-16
+$EndINDEX
+#
+# URL: http://kicadcloud.com/pcbModule/3689
+#
+$MODULE ssop-16
+Po 0 0 0 15 50BDF9A0 00000000 ~~
+Li ssop-16
+Cd SSOP-16
+Sc 0
+AR
+Op 0 0 0
+At SMD
+T0 0 200 197 197 0 39 N V 21 N "SSOP-16"
+T1 0 -354 197 197 0 39 N V 21 N "U***"
+DS -975 775 975 775 50 21
+DS 975 775 975 -775 50 21
+DS 975 -775 -975 -775 50 21
+DS -975 -775 -975 775 50 21
+DC -725 525 -775 625 50 21
+$PAD
+Sh "4" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -125 1050
+$EndPAD
+$PAD
+Sh "5" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 125 1050
+$EndPAD
+$PAD
+Sh "6" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 375 1050
+$EndPAD
+$PAD
+Sh "7" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 625 1050
+$EndPAD
+$PAD
+Sh "16" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -875 -1050
+$EndPAD
+$PAD
+Sh "1" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -875 1050
+$EndPAD
+$PAD
+Sh "2" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -625 1050
+$EndPAD
+$PAD
+Sh "3" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -375 1050
+$EndPAD
+$PAD
+Sh "9" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 875 -1050
+$EndPAD
+$PAD
+Sh "10" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 625 -1050
+$EndPAD
+$PAD
+Sh "11" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 375 -1050
+$EndPAD
+$PAD
+Sh "12" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 125 -1050
+$EndPAD
+$PAD
+Sh "13" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -125 -1050
+$EndPAD
+$PAD
+Sh "14" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -375 -1050
+$EndPAD
+$PAD
+Sh "8" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 875 1050
+$EndPAD
+$PAD
+Sh "15" R 160 650 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po -625 -1050
+$EndPAD
+$SHAPE3D
+Na "smd/smd_dil/ssop-16.wrl"
+Sc 1 1 1
+Of 0 0 0
+Ro 0 0 0
+$EndSHAPE3D
+$EndMODULE ssop-16
+$EndLIBRARY
