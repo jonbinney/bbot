@@ -1,6 +1,5 @@
 (fp_lib_table
   (lib (name w_conn_df13)(type Legacy)(uri "$(KIPRJMOD)/df13_lib/w_conn_df13.mod")(options "")(descr ""))
-  (lib (name to263)(type Legacy)(uri "$(KIPRJMOD)/to263.mod")(options "")(descr ""))
   (lib (name ssop16)(type Legacy)(uri "$(KIPRJMOD)/ssop16.mod")(options "")(descr ""))
   (lib (name bbot_footprints)(type KiCad)(uri "$(KIPRJMOD)/bbot_footprints.pretty")(options "")(descr ""))
 )
