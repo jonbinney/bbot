@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <drivers/device/spi.h>
+#include <drivers/drv_pwm_output.h>
 #include <board_config.h>
 
 /* External SPI device 1 has its chipselect on
@@ -57,6 +58,34 @@
  */
 #define BBOT_ENCODER2_BUS PX4_SPI_BUS_EXT
 #define BBOT_ENCODER2_DEVICE PX4_SPIDEV_EXT1
+
+#define NUM_PWM_OUTPUTS 6
+#define PWM_RATE 2500
+#define PWM_CLOCK_SPEED 1000000
+
+struct GPIOConfig {
+  uint32_t input;
+  uint32_t output;
+  uint32_t alt;
+};
+
+/** List of pins to configure as input or output */
+const GPIOConfig gpio_tab[] = {
+  {0,       GPIO_GPIO0_OUTPUT,       0},
+  {0,       GPIO_GPIO1_OUTPUT,       0},
+  {0,       GPIO_GPIO2_OUTPUT,       0},
+  {0,       GPIO_GPIO3_OUTPUT,       0},
+  {0,       GPIO_GPIO4_OUTPUT,       0},
+  {0,       GPIO_GPIO5_OUTPUT,       0},
+
+  {0,                      GPIO_VDD_5V_PERIPH_EN,   0},
+  {0,                      GPIO_VDD_3V3_SENSORS_EN, 0},
+  {GPIO_VDD_BRICK_VALID,   0,                       0},
+  {GPIO_VDD_SERVO_VALID,   0,                       0},
+  {GPIO_VDD_5V_HIPOWER_OC, 0,                       0},
+  {GPIO_VDD_5V_PERIPH_OC,  0,                       0},
+};
+const unsigned ngpio = sizeof(gpio_tab) / sizeof(gpio_tab[0]);
 
 extern "C"
 {
@@ -84,12 +113,95 @@ class AS5045 : device::SPI
   }
 };
 
+class HighSpeedPWM
+{
+public:
+  HighSpeedPWM(unsigned int pwm_rate) :
+    _pwm_rate(pwm_rate), _pwm_period(1.0f / (float) pwm_rate)
+  {
+    /* There's some sleeps in here that might not all be necessary... */
+
+    printf("Resetting GPIO\n");
+    gpioReset();
+
+    usleep(500000);
+
+    /* Magic number borrowed from src/drivers/px4fmu/fmu.cpp */
+    printf("Initializing PWM\n");
+    up_pwm_servo_init(0x3f);
+
+    usleep(500000);
+
+    /* Set PWM Rate for all outputs */
+    printf("Setting PWM rate\n");
+    if(up_pwm_servo_set_rate(_pwm_rate) != OK) {
+      printf("set rate failed");
+      return;
+    }
+
+    usleep(500000);
+
+    printf("Arming PWM\n");
+    up_pwm_servo_arm(true);
+
+    usleep(500000);
+  }
+
+  void gpioReset(void)
+  {
+    /*
+     * Setup default GPIO config - all pins as GPIOs, input if
+     * possible otherwise output if possible.
+     */
+    for (unsigned gpio_i = 0; gpio_i < ngpio; gpio_i++) {
+      if (gpio_tab[gpio_i].input != 0) {
+        stm32_configgpio(gpio_tab[gpio_i].input);
+
+      } else if (gpio_tab[gpio_i].output != 0) {
+        stm32_configgpio(gpio_tab[gpio_i].output);
+      }
+    }
+  }
+
+  void set_fractions(const float pwm_fractions[]) {
+    /* Set pulse width for all outputs */
+    for(size_t pwm_i = 0; pwm_i < 6; ++pwm_i) {
+      unsigned int pwm_value = (unsigned int) (pwm_fractions[pwm_i] * _pwm_period * PWM_CLOCK_SPEED);
+      if(pwm_i == 0) {
+        printf("%.2e, %d\n", (double) pwm_fractions[pwm_i], pwm_value);
+      }
+
+      up_pwm_servo_set(pwm_i, pwm_value);
+    }
+  }
+
+private:
+  unsigned _pwm_rate;
+  float _pwm_period;
+};
+
 __EXPORT int bbot_main(int argc, char *argv[]);
 
 int bbot_main(int argc, char *argv[]) {
   printf("Battlebot starting up!\n");
-  AS5045 enc1("enc1", "/dev/enc1", (spi_dev_e) BBOT_ENCODER2_DEVICE);
-  printf("Encoder value: %d\n", enc1.measure());
+  //AS5045 enc1("enc1", "/dev/enc1", (spi_dev_e) BBOT_ENCODER2_DEVICE);
+  //printf("Encoder value: %d\n", enc1.measure());
+  HighSpeedPWM pwm_driver(PWM_RATE);
+
+  float pwm_fractions[NUM_PWM_OUTPUTS] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
+  float delta_t = 0.1;
+  float cycle_rate = 0.5;
+  while(true) {
+    printf("Setting pwm\n");
+    pwm_driver.set_fractions(pwm_fractions);
+    for(size_t pwm_i = 0; pwm_i < NUM_PWM_OUTPUTS; pwm_i++) {
+      pwm_fractions[pwm_i] = pwm_fractions[pwm_i] + delta_t * cycle_rate;
+      while(pwm_fractions[pwm_i] > 1.0f) {
+        pwm_fractions[pwm_i] -= 1.0f;
+      }
+    }
+    usleep((unsigned int) (delta_t * 1000000));
+  }
   return OK;
 }
 
