@@ -39,11 +39,20 @@
 
 #include <px4_config.h>
 #include <nuttx/config.h>
+#include <px4_posix.h> 
 #include <stdio.h>
 #include <errno.h>
+#include <math.h>
+#include <mathlib/mathlib.h>
+#include <time.h>
 #include <drivers/device/spi.h>
 #include <drivers/drv_pwm_output.h>
+#include <drivers/drv_gyro.h>
+#include <drivers/drv_hrt.h>
 #include <board_config.h>
+
+#include <uORB/uORB.h>
+#include <uORB/topics/sensor_combined.h>
 
 /* External SPI device 1 has its chipselect on
  * PORT C, Pin 14, which is connected to GPIO_EXT_1 on the board
@@ -188,8 +197,41 @@ int bbot_main(int argc, char *argv[]) {
   //printf("Encoder value: %d\n", enc1.measure());
   HighSpeedPWM pwm_driver(PWM_RATE);
 
-  float pwm_fractions[NUM_PWM_OUTPUTS] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
+  int gyro_sub = orb_subscribe(ORB_ID(sensor_gyro));
+
   float delta_t = 0.1;
+
+  uint64_t t = hrt_absolute_time();
+  uint64_t t_last_printf = t;
+  float yaw = 0.0;
+
+  for(int ii = 0; ii < 10000000; ii++) {
+    bool gyro_updated;
+    orb_check(gyro_sub, &gyro_updated);
+    if (gyro_updated) {
+      struct gyro_report gyro_report;
+      orb_copy(ORB_ID(sensor_gyro), gyro_sub, &gyro_report);
+
+      math::Vector<3> vect(gyro_report.x, gyro_report.y, gyro_report.z);
+
+      // Figure out how long it has been since the last loop
+      uint64_t t_new = hrt_absolute_time();
+      float delta_t = (t_new - t) / 1e6;
+      t = t_new;
+
+      yaw += delta_t * gyro_report.z;
+      // printf("gyro_report: (%.3f, %.3f, %.3f)\n",
+      //    (double) gyro_report.x, (double) gyro_report.y, (double) gyro_report.z);
+      if((t - t_last_printf) > 500000) {
+        printf("yaw: %.3f\n", (double) yaw);
+        t_last_printf = t;
+      }
+    }
+    usleep((unsigned int) (100));
+  }
+  return 0;
+
+  float pwm_fractions[NUM_PWM_OUTPUTS] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
   float cycle_rate = 0.5;
   while(true) {
     printf("Setting pwm\n");
