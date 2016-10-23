@@ -12,10 +12,13 @@ const int right_motor_pin_a = 5;
 const int right_motor_pin_b = 6;
 const int right_motor_pin_pwm = 7;
 
+unsigned long time;
+unsigned long motor_start_time;
+
+bool motor_on = false;
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("Dug starting up");
+  Serial.begin(57600);
 
   pinMode(right_motor_pin_a, OUTPUT);
   pinMode(right_motor_pin_b, OUTPUT);
@@ -25,18 +28,30 @@ void setup() {
 long right_drum_position  = -999;
 
 void loop() {
-  long new_right_drum_position;
-  new_right_drum_position = right_drum_encoder.read();
+  time = micros();
 
-  digitalWrite(right_motor_pin_a, HIGH);
-  digitalWrite(right_motor_pin_b, LOW);
-  digitalWrite(right_motor_pin_pwm, LOW);
+  // Start the motor after 5 seconds
+  if(time > 5000000 && time < 6000000) {
+    if(!motor_on) {
+        digitalWrite(right_motor_pin_a, HIGH);
+        digitalWrite(right_motor_pin_b, LOW);
+        digitalWrite(right_motor_pin_pwm, HIGH);
+        motor_start_time = time;
+        motor_on = true;
+    }
 
-  if (new_right_drum_position != right_drum_position) {
-    Serial.print("Right = ");
-    Serial.print(new_right_drum_position);
+    // Read encoders
+    right_drum_position = right_drum_encoder.read();
+
+    Serial.print(time - motor_start_time);
+    Serial.print(",");
+    Serial.print(right_drum_position);
     Serial.println();
-    right_drum_position = new_right_drum_position;
   }
+  // Stop the motor after another second
+  else if(time >= 6000000) {
+      digitalWrite(right_motor_pin_pwm, LOW);
+  }
+
 }
 
